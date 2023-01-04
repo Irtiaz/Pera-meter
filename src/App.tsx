@@ -1,26 +1,34 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Fragment, useState} from 'react';
+import Prompt from "./Components/Prompt";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    const [log, setLog] = useState("");
+
+    function handleInput(input: string) {
+        const output = "";
+
+        let newLog = log;
+        if (log.length !== 0) newLog += '\n';
+        newLog += ">>" + input;
+        newLog += "\n" + output;
+
+        console.log({input, newLog});
+
+        setLog(newLog);
+    }
+
+    return (
+        <div className={"crt"}>
+            <div className={"scan-bar"}></div>
+            {log.length > 0 && log.split("\n").map((h, i) =>
+                <Fragment key={"log-" + i}>
+                    {h.length === 0 ? <br/> : <div>{h}</div>}
+                </Fragment>
+            )}
+            <Prompt handlerFunction={handleInput}/>
+        </div>
+    );
 }
 
 export default App;

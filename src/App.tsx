@@ -6,10 +6,9 @@ const gameManager = new GameManager();
 
 function App() {
 
-    const [log, setLog] = useState("");
+    const [log, setLog] = useState(">>HELP\n" + gameManager.feedCommand("HELP"));
 
     function handleInput(input: string) {
-
         if (input === "CLEAR") {
             setLog("");
             return;
@@ -30,10 +29,12 @@ function App() {
             <div className={"scan-bar"}></div>
             {log.length > 0 && log.split("\n").map((l, i) =>
                 <Fragment key={"log-" + i}>
-                    {l.length === 0 ? <br/> : <div style={{paddingLeft: (2 * countTabs(l)) + "em"}}>{l.trim()}</div>}
+                    {l.length === 0 ? <br/> :
+                        <div style={{paddingLeft: (2 * countTabs(l)) + "em", whiteSpace: "pre"}}>{l.trim()}</div>}
                 </Fragment>
             )}
             <Prompt handlerFunction={handleInput}/>
+
         </div>
     );
 }

@@ -14,7 +14,7 @@ class FunctionObject {
     }
 
     public toString(): string {
-        let ret: string = this.name + "(a, b):\n";
+        let ret: string = this.name + " a b :\n";
         for (let line of this.code.split("\n")) {
             ret += "\t" + line + "\n";
         }
@@ -50,10 +50,14 @@ class FunctionDatabase {
         this.functions.push(fObj);
     }
 
-    public callFunction(name: string, a: number, b: number): number {
+    public callFunction(name: string, a: number, b: number): string {
         for (let f of this.functions) {
             if (f.getName() === name) {
-                return f.evaluate(a, b);
+                try {
+                    return f.evaluate(a, b).toString();
+                } catch (e) {
+                    return "Can't do this operation";
+                }
             }
         }
         throw new Error("Function not found");
@@ -77,20 +81,27 @@ class FunctionDatabase {
     }
 
     public renameFunction(prevName: string, newName: string): boolean {
-        let found: boolean = false;
-        for (let f of this.functions) {
-            if (f.getName() === prevName) {
-                f.setName(newName);
-                found = true;
+        let x: number = -1
+        let y: number = -1
+        for (let i = 0; i < this.functions.length; i++) {
+            if (this.functions[i].getName() === prevName) {
+                x = i;
+            }
+            if (this.functions[i].getName() === newName) {
+                y = i;
             }
         }
-        if (!found) {
+        if (x < 0) {
             return false;
         }
-        for (let f of this.functions) {
-            f.setCode(f.getCode().replace(new RegExp(prevName, 'g'), newName));
+        if (y < 0) {
+            this.functions[x].setName(newName);
+            for (let f of this.functions) {
+                f.setCode(f.getCode().replace(new RegExp(prevName, 'g'), newName));
+            }
+            return true;
         }
-        return true;
+        return false;
     }
 }
 
@@ -109,13 +120,19 @@ class Level {
     }
 
     public evaluateFunction(functionName: string, a: number, b: number): string {
-        if (this.numberList.indexOf(a) < 0 || this.numberList.indexOf(b) < 0) {
-            return "Numbers are not available";
-        }
         for (let name of this.funcNames) {
             if (name === functionName) {
-                const n: number = this.functionDatabase.callFunction(name, a, b);
-                this.numberList.push(n);
+                if (this.numberList.indexOf(a) < 0 || this.numberList.indexOf(b) < 0) {
+                    return "Numbers have to be available";
+                }
+                const r: string = this.functionDatabase.callFunction(name, a, b);
+                if (!Number.isInteger(Number(r))) {
+                    return r;
+                }
+                const n: number = Number(r);
+                if (this.numberList.indexOf(n) < 0) {
+                    this.numberList.push(n);
+                }
                 if (n === this.target) {
                     return n.toString() + " reached. Level passed";
                 }
@@ -142,25 +159,130 @@ class Level {
         return ret;
     }
 
+    public getFunctionNameStr(): string {
+        let ret: string = "";
+        for (let name of this.funcNames) {
+            ret += name + "\n";
+        }
+        return ret;
+    }
+
     public renameFunction(prevName: string, newName: string): boolean {
+        let x: number = -1;
+        let y: number = -1;
         for (let i = 0; i < this.funcNames.length; ++i) {
             if (this.funcNames[i] === prevName) {
-                this.funcNames[i] = newName;
-                return true;
+                x = i;
+            }
+            if (this.funcNames[i] === newName) {
+                y = i;
             }
         }
-        return false;
+        if (x < 0) {
+            return false;
+        }
+        if (y < 0) {
+            this.funcNames[x] = newName;
+        }
+        return true;
+    }
+
+    public getTarget(): number {
+        return this.target;
     }
 }
 
 
 function add(a: number, b: number): number {
-    return a + b;
+    let result: number = 0;
+
+    if (a > 0) {
+        for (let i = 0; i < a; ++i) {
+            result = result + 1;
+        }
+    } else {
+        for (let i = 0; i < -a; ++i) {
+            result = result - 1;
+        }
+    }
+
+    if (b > 0) {
+        for (let i = 0; i < b; ++i) {
+            result = result + 1;
+        }
+    } else {
+        for (let i = 0; i < -b; ++i) {
+            result = result - 1;
+        }
+    }
+    return result;
 }
 
 function sub(a: number, b: number): number {
-    return add(a, b) - b;
+    let result: number = 0;
+
+    if (a > b) {
+        for (let i = b; i < a; ++i) {
+            result = result + 1
+        }
+    } else {
+        for (let i = a; i < b; ++i) {
+            result = result - 1
+        }
+    }
+    return result;
 }
+
+function factorial(a: number, b: number): number {
+    let result: number = 1
+
+    if (a > 0) {
+        for (let i = 1; i <= a + b + 1; ++i) {
+            result = result * i;
+        }
+    } else {
+        for (let i = 1; i <= b - a + 1; ++i) {
+            result = result / i;
+        }
+    }
+
+    if (b > 0) {
+        for (let i = a + 1; i <= a + b + 1; ++i) {
+            result = result / i;
+        }
+    } else {
+        for (let i = 1; i <= a - b + 1; ++i) {
+            result = result * i;
+        }
+    }
+
+    return result;
+}
+
+function gcd(a: number, b: number): number {
+    let result: number = 0;
+    if (a % 2 == 0 && b % 2 == 0) {
+        for (let i: number = 2; i < a + 1; ++i) {
+            if (a % i == 0 && b % i == 0) result = i;
+        }
+    } else {
+        for (let i: number = 1; i < a + 1; i += 2) {
+            if (a % i == 0 && b % i == 0) result = i;
+        }
+    }
+    return result;
+}
+
+function mul(a: number, b: number): number {
+    let result: number = 0;
+    for (let i: number = 0; i < b; ++i) {
+        for (let j: number = 0; j < a; ++j) {
+            result = result + 1;
+        }
+    }
+    return result;
+}
+
 
 export default class GameManager {
     private readonly levels: Array<Level>;
@@ -169,10 +291,24 @@ export default class GameManager {
 
     public constructor() {
         this.functionDatabase = new FunctionDatabase();
-        this.functionDatabase.add(new FunctionObject('ADD', add, "return a + b"));
-        this.functionDatabase.add(new FunctionObject('SUB', sub, "return ADD(a, b) - b"));
+
+        let addstr: string = "RESULT = 0\nIF A > 0 THEN\n	FOR I = 0 TO A STEP 1\n		RESULT = RESULT + 1\nELSE\n	FOR I = 0 TO -B STEP 1\n		RESULT = RESULT - 1\nIF B > 0 THEN\n	FOR I = 0 TO B\n		RESULT = RESULT + 1\nELSE\n	FOR I = 0 TO -B STEP 1\n		RESULT = RESULT - 1\nRETURN RESULT";
+        this.functionDatabase.add(new FunctionObject('GCD', add, addstr));
+
+        let substr: string = "RESULT = 0\nIF A > B THEN\n	FOR I = B TO A STEP 1\n		RESULT = RESULT + 1\nELSE\n	FOR I = A TO B STEP 1\n		RESULT = RESULT - 1\nRETURN RESULT";
+        this.functionDatabase.add(new FunctionObject('FACTORIAL', sub, substr));
+
+
+        let gcdstr: string = "RESULT = 0\nIF A % 2 == 0 AND B % 2 == 0 THEN\n	FOR I = 2 TO A + 1 STEP 1\n		IF A % I == 0 AND B % I == 0 THEN\n			RESULT = I\nELSE\n	FOR I = 1 TO A + 1 STEP 2\n		IF A % I == 0 AND B % I == 0 THEN\n			RESULT = I\nRETURN RESULT";
+        this.functionDatabase.add(new FunctionObject('SUB', gcd, gcdstr));
+
+        let mulstr: string = "RESULT = 0\nFOR I = 0 TO B STEP 1\n	FOR J = 0 TO A STEP 1\n		RESULT = RESULT + 1\nRETURN RESULT";
+        this.functionDatabase.add(new FunctionObject('FIBONACCI', mul, mulstr));
+
         this.levels = [];
-        this.levels.push(new Level(['ADD', 'SUB'], [3, 7, 10], this.functionDatabase, 4));
+        this.levels.push(new Level(['GCD', 'FACTORIAL'], [5, 8, 14], this.functionDatabase, 17));
+        this.levels.push(new Level(['GCD', 'SUB', 'FIBONACCI'], [2, 5, 7, 10], this.functionDatabase, 3));
+
         this.currentLevelIndex = 0;
     }
 
@@ -181,11 +317,15 @@ export default class GameManager {
     }
 
     public feedCommand(command: string): string {
+        if (this.gameOver()) {
+            return "";
+        }
         if (command === "") {
             return "";
         }
         if (command === "LS") {
-            return this.levels[this.currentLevelIndex].getNumberListStr();
+            return "Available integers:\n" + this.levels[this.currentLevelIndex].getNumberListStr()
+                + "\nAvailable Functions:\n" + this.levels[this.currentLevelIndex].getFunctionNameStr();
         }
         if (command === "MAN") {
             return this.functionDatabase.toString();
@@ -193,9 +333,19 @@ export default class GameManager {
         if (command === "HELP") {
             return this.getHelpText();
         }
+        if (command === "HELP GAME") {
+            return this.getHelpGameText();
+        }
+        if (command === "HELP LEVEL") {
+            return "You are in level #" + (this.currentLevelIndex + 1) + "\n"
+                + "Your target number is " + this.levels[this.currentLevelIndex].getTarget()
+                + "\n" + "Use LS to see available integers and functions and\n"
+                + "Use WHATIS to see implementation details";
+
+        }
         let splitCommand = command.split(" ");
         if (splitCommand.length === 2) {
-            if (splitCommand[0] === "MAN") {
+            if (splitCommand[0] === "WHATIS") {
                 return this.functionDatabase.getManPageOfFunction(splitCommand[1]);
             }
         }
@@ -204,15 +354,17 @@ export default class GameManager {
                 if (splitCommand[2] === "RENAME") {
                     return "Can not change name to keyword RENAME";
                 }
-                for (let l of this.levels) {
-                    l.renameFunction(splitCommand[1], splitCommand[2]);
-                }
+
                 let found: boolean = this.functionDatabase.renameFunction(splitCommand[1], splitCommand[2]);
                 if (found) {
+                    for (let l of this.levels) {
+                        l.renameFunction(splitCommand[1], splitCommand[2]);
+                    }
                     return "Function " + splitCommand[1] + " renamed to " + splitCommand[2];
                 } else {
-                    return "Function " + splitCommand[1] + " not found";
+                    return "Invalid RENAME";
                 }
+
             }
 
             let funcName: string = splitCommand[0];
@@ -224,13 +376,79 @@ export default class GameManager {
             let r: string = this.levels[this.currentLevelIndex].evaluateFunction(funcName, a, b);
             if (this.levels[this.currentLevelIndex].isLevelPassed()) {
                 ++this.currentLevelIndex;
+                if (this.gameOver()) {
+                    return r + "\n" + "Game Over. Congratulations";
+                } else {
+                    return r + "\n" + "Progressing to next level. Target is " + this.levels[this.currentLevelIndex].getTarget()
+                        + "\n" + "Check available numbers and functions with LS";
+                }
             }
             return r;
         }
         return "Unknown command";
     }
 
-    private getHelpText(): string {
-        return "No help text for now";
+    private getHelpGameText(): string {
+        let helpText: string = "";
+
+        helpText += "You are excited about this game jam and decide to use some functions from an old project.\n";
+        helpText += "However, the labels of the functions have been shuffled and they are behaving strangely.\n";
+        helpText += "You experiment with different parameters to try to understand the functions' behavior.\n";
+
+        helpText += "\n" + "* You will start with a handful of integers and functions in each level.\n";
+        helpText += "* Only these integers can be passed to this functions as parameters\n";
+        helpText += "* Note that: The number 'YOU' pass must be in the list of available integers\n";
+        helpText += "* This rule does not apply to functions calling other functions\n";
+        helpText += "* You will also be given a target number to reach to pass the level.\n";
+        helpText += "* In the process, all return values will be added to the available numbers\n";
+        helpText += "* provided in the start of each level to help boost your progress\n";
+        helpText += "* You can also rename any function to your liking for convenience\n";
+        helpText += "\n" + "Good luck!\n";
+
+        return helpText;
     }
+
+    private getHelpText(): string {
+        let ret: string = "";
+        ret += "LS : List of available integers and function\n";
+        ret += "MAN : List of all functions with implementation\n";
+        ret += "WHATIS $FUNCTION_NAME$ : Implementation of specified function\n";
+        ret += "RENAME $OLD_NAME$ $NEW_NAME$ : Rename function\n";
+        ret += "$FUNCTION_NAME$ $A$ $B$ : Call function with parameters\n";
+        ret += "HELP : List of all commands\n";
+        ret += "HELP GAME : Introduction to the premise of the game\n";
+        ret += "HELP LEVEL : Get current level information\n";
+
+        return ret;
+    }
+
+    public getLogo(): string {
+        return (
+            "██████  ███████ ██████   █████  ███    ███ ███████ ████████ ███████ ██████\n" +
+            "██   ██ ██      ██   ██ ██   ██ ████  ████ ██         ██    ██      ██   ██\n" +
+            "██████  █████   ██████  ███████ ██ ████ ██ █████      ██    █████   ██████\n" +
+            "██      ██      ██   ██ ██   ██ ██  ██  ██ ██         ██    ██      ██   ██\n" +
+            "██      ███████ ██   ██ ██   ██ ██      ██ ███████    ██    ███████ ██   ██\n"
+        );
+    }
+}
+
+
+function main(): void {
+    let gm: GameManager = new GameManager();
+    console.log(gm.feedCommand("HELP"));
+    console.log(gm.feedCommand("MAN"));
+    console.log(gm.feedCommand("WHATIS ADD"));
+    console.log(gm.feedCommand("RENAME ADD FOO"));
+    console.log(gm.feedCommand("MAN"))
+    console.log(gm.feedCommand("FOO 2 3"));
+    console.log(gm.feedCommand("LS"));
+    console.log(gm.feedCommand("FOO 3 10"));
+    console.log(gm.feedCommand("FOO 3 7"));
+    console.log(gm.feedCommand("LS"));
+    console.log(gm.feedCommand("FOO 7 10"));
+}
+
+if (typeof require !== 'undefined' && require.main === module) {
+    main();
 }

@@ -6,13 +6,12 @@ const Prompt: React.FC<{ handlerFunction(input: string): void }> = ({handlerFunc
     const [cursorPos, setCursorPos] = useState<number>(0);
 
     const ref = useRef() as any;
-    const hiddenInputBoxRef = useRef() as any;
 
     useEffect(() => {
         document.body.onkeydown = (event) => {
             if (event.key.length === 1) {
 
-                ref.current.scrollIntoView();
+                ref.current?.scrollIntoView();
 
                 setInput(input.slice(0, cursorPos) + event.key.toLocaleUpperCase() + input.slice(cursorPos + 1));
                 setCursorPos(cursorPos + 1);
@@ -28,18 +27,11 @@ const Prompt: React.FC<{ handlerFunction(input: string): void }> = ({handlerFunc
                 setCursorPos(0);
 
                 setTimeout(() => {
-                    ref.current.scrollIntoView();
+                    ref.current?.scrollIntoView();
                 });
             }
         }
     }, [input, cursorPos, handlerFunction]);
-
-
-    useEffect(() => {
-        document.body.onclick = () => {
-            hiddenInputBoxRef.current.focus();
-        }
-    }, []);
 
     return (
         <div style={{marginBottom: "40vh"}}>

@@ -1,15 +1,30 @@
-import React, {Fragment, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Prompt from "./Components/Prompt";
 import GameManager from "./util/engine";
+import TypeIt from "typeit-react";
+import Parser from "./Components/Parser";
 
 const gameManager = new GameManager();
+let interval: NodeJS.Timer;
 
 function App() {
 
-    const [log, setLog] = useState(">>HELP\n" + gameManager.feedCommand("HELP"));
+    const [log, setLog] = useState("");
+
+    const [firstComplete, setFirstComplete] = useState(false);
+    const [secondComplete, setSecondComplete] = useState(false);
+    const [thirdComplete, setThirdComplete] = useState(false);
+    const [showInitialStuff, setShowInitialStuff] = useState(true);
+    const [skippedCutscene, setSkippedCutscene] = useState(false);
 
     function handleInput(input: string) {
+        if (gameManager.gameOver()) return;
+
         if (input === "CLEAR") {
+            if (showInitialStuff) {
+                console.log({firstComplete, secondComplete, thirdComplete, showInitialStuff})
+                setShowInitialStuff(false);
+            }
             setLog("");
             return;
         }
@@ -24,28 +39,97 @@ function App() {
         setLog(newLog);
     }
 
+    useEffect(() => {
+        document.body.onkeydown = () => {
+            setSkippedCutscene(true);
+            setLog(
+                ">>HELP GAME\n\n" + gameManager.feedCommand("HELP GAME") +
+                ">>HELP\n\n" + gameManager.feedCommand("HELP") +
+                ">>HELP LEVEL\n\n" + gameManager.feedCommand("HELP LEVEL")
+            );
+        }
+    }, []);
+
+
     return (
         <div className={"crt"}>
             <div className={"scan-bar"}></div>
-            {log.length > 0 && log.split("\n").map((l, i) =>
-                <Fragment key={"log-" + i}>
-                    {l.length === 0 ? <br/> :
-                        <div style={{paddingLeft: (2 * countTabs(l)) + "em", whiteSpace: "pre"}}>{l.trim()}</div>}
-                </Fragment>
-            )}
-            <Prompt handlerFunction={handleInput}/>
+
+
+            {showInitialStuff && <Parser str={gameManager.getLogo()} fontFamily={"Consolas"}/>}
+
+
+            <div style={{display: (showInitialStuff && !skippedCutscene) ? "block" : "none"}}>
+                <div>&gt;&gt;HELP GAME</div>
+
+                <TypeIt options={{speed: 10}} getAfterInit={instance => {
+                    instance.destroy();
+
+                    interval = setInterval(() => {
+                        if (instance.is('completed')) {
+                            setFirstComplete(true);
+                            clearInterval(interval);
+                        }
+                    }, 100);
+
+                    return instance;
+                }}>
+                    <Parser str={gameManager.feedCommand("HELP GAME")}/>
+                </TypeIt>
+
+                {firstComplete &&
+                    <>
+                        <div>&gt;&gt;HELP</div>
+                        <TypeIt options={{speed: 10}} getAfterInit={instance => {
+                            instance.destroy();
+                            interval = setInterval(() => {
+
+                                if (instance.is('completed')) {
+                                    setSecondComplete(true);
+                                    clearInterval(interval);
+                                }
+                            }, 100);
+                            return instance;
+                        }}>
+                            <Parser str={gameManager.feedCommand("HELP")}/>
+                        </TypeIt>
+
+                    </>
+                }
+
+                {firstComplete && secondComplete &&
+                    <>
+                        <div>&gt;&gt;HELP LEVEL</div>
+                        <TypeIt getAfterInit={instance => {
+                            instance.destroy();
+                            interval = setInterval(() => {
+
+                                if (instance.is('completed')) {
+                                    setThirdComplete(true);
+                                    clearInterval(interval);
+                                }
+                            }, 100);
+                            return instance;
+                        }}>
+                            <Parser str={gameManager.feedCommand("HELP LEVEL")}/>
+                        </TypeIt>
+
+                    </>
+                }
+            </div>
+
+
+            {(skippedCutscene || (firstComplete && secondComplete && thirdComplete)) &&
+                <>
+                    <Parser str={log}/>
+                    {!gameManager.gameOver() && <Prompt handlerFunction={handleInput}/>}
+                </>
+            }
+
 
         </div>
     );
 }
 
-function countTabs(str: string): number {
-    let count = 0;
-    for (let i = 0; i < str.length; ++i) {
-        if (str[i] !== '\t') break;
-        ++count;
-    }
-    return count;
-}
 
 export default App;

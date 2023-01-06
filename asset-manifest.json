@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.310a5dd6.css",
+    "main.js": "/static/js/main.a6fe0c63.js",
+    "static/js/787.141849cc.chunk.js": "/static/js/787.141849cc.chunk.js",
+    "static/media/Commodore Angled v1.2.ttf": "/static/media/Commodore Angled v1.2.9d9d3ecd5c9ad3274995.ttf",
+    "index.html": "/index.html",
+    "main.310a5dd6.css.map": "/static/css/main.310a5dd6.css.map",
+    "main.a6fe0c63.js.map": "/static/js/main.a6fe0c63.js.map",
+    "787.141849cc.chunk.js.map": "/static/js/787.141849cc.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.310a5dd6.css",
+    "static/js/main.a6fe0c63.js"
+  ]
+}

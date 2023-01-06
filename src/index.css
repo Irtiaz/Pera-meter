@@ -25,24 +25,6 @@ body {
     text-transform: uppercase;
 }
 
-.scan-bar {
-    position: absolute;
-    background: rgba(51, 51, 51, 0.45);
-    top: 0;
-    height: 25px;
-    width: 100%;
-    animation: scan-animation 3s linear infinite;
-}
-
-@keyframes scan-animation {
-    0% {
-        transform: translateY(0%);
-    }
-    100% {
-        transform: translateY(96vh);
-    }
-}
-
 /* Adapted from source: http://aleclownes.com/2017/02/01/crt-display.html */
 @keyframes flicker {
     0% {
@@ -179,7 +161,7 @@ body {
 .crt::after {
     content: " ";
     display: block;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
@@ -194,7 +176,7 @@ body {
 .crt::before {
     content: " ";
     display: block;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
@@ -213,12 +195,27 @@ body {
     animation: blink-animation 1s steps(5, start) infinite;
 }
 
+.scan-bar {
+    position: fixed;
+    width: 100%;
+    height: 20px;
+    top: 0;
+    background-color: rgba(51, 51, 51, 0.45);
+    animation: scan-animation 3s linear infinite;
+}
+
+@keyframes scan-animation {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(96vh);
+    }
+}
+
+
 @keyframes blink-animation {
     to {
         visibility: hidden;
     }
-}
-
-.site-title {
-    font-size: 2rem;
 }

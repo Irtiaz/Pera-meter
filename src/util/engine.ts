@@ -283,6 +283,53 @@ function mul(a: number, b: number): number {
     return result;
 }
 
+function isPrime(a: number, b: number): number {
+    if (a == 1) return 0;
+    let temp: number = b;
+    for (let i: number = 0; i < a + temp; ++i) {
+        b = b + a;
+    }
+    for (let i: number = 2; i < a; ++i) {
+        if (a % i == 0) return 0;
+    }
+    return 1;
+}
+
+
+function concat(a: number, b: number): number {
+    if (b == 0) return 10 * a;
+    let temp = b;
+    let d = 0;
+    while (temp != 0) {
+        temp = Math.floor(temp / 10);
+        ++d;
+    }
+    let p = 1;
+    for (let i = 0; i < d; ++i) {
+        p = p * 10;
+    }
+    return a * p + b;
+}
+
+function binaryToDecimal(a: number, b: number): number {
+    if (a < 0) {
+        for (let i = 0; i < b; ++i) {
+            a = a + b;
+        }
+        throw "Negative number not allowed";
+    }
+    let result = 0;
+    let p = 1;
+    while (a != 0) {
+        let d = a % 10;
+        if (d > 1) throw "Only 0 or 1s are allowed as digits";
+        result = result + p * d;
+        a = Math.floor(a / 10);
+        p *= 2;
+    }
+    return result;
+}
+
 
 export default class GameManager {
     private readonly levels: Array<Level>;
@@ -305,9 +352,20 @@ export default class GameManager {
         let mulstr: string = "RESULT = 0\nFOR I = 0 TO B STEP 1\n	FOR J = 0 TO A STEP 1\n		RESULT = RESULT + 1\nRETURN RESULT";
         this.functionDatabase.add(new FunctionObject('FIBONACCI', mul, mulstr));
 
+        let primestr: string = "RESULT = 0\nIF A == 1 THEN\n	RETURN 0\nTEMP = B\nFOR I = 0 TO A + TEMP STEP 1\n	B = B + A\nFOR I = 2 TO A STEP 1\n	IF A % I == 0 THEN\n		RETURN 0\nRETURN 1";
+        this.functionDatabase.add(new FunctionObject('LCM', isPrime, primestr));
+
+        let concatstr: string = "IF B == 0 THEN\n	RETURN 10 * A\nTEMP = B\nD = 0\nWHILE TEMP != 0\n	TEMP = TEMP / 10\n	D = D + 1\nP = 1\nFOR I = 0 TO D STEP 1\n	P = P * 10\nRETURN A * P + B";
+        this.functionDatabase.add(new FunctionObject('MAX', concat, concatstr));
+
+        let bintodecstr: string = "IF A < 0 THEN\n	FOR I = 0 TO B STEP 1\n		A = A + B\n	ERROR\nRESULT = 0\nP = 1\nWHILE A != 0\n	D = A % 10\n	IF (D > 1) ERROR\n	RESULT = RESULT + P * D\n	A = A / 10\n	P = P * 2\nRETURN RESULT";
+        this.functionDatabase.add(new FunctionObject('MIN', binaryToDecimal, bintodecstr));
+
+
         this.levels = [];
         this.levels.push(new Level(['GCD', 'FACTORIAL'], [5, 8, 14], this.functionDatabase, 17));
         this.levels.push(new Level(['GCD', 'SUB', 'FIBONACCI'], [2, 5, 7, 10], this.functionDatabase, 3));
+        this.levels.push(new Level(['LCM', 'MAX', 'MIN', 'FACTORIAL'], [2], this.functionDatabase, 13));
 
         this.currentLevelIndex = 0;
     }

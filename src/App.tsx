@@ -55,9 +55,7 @@ function App() {
         <div className={"crt"}>
             <div className={"scan-bar"}></div>
 
-
             {showInitialStuff && <Parser str={gameManager.getLogo()} fontFamily={"Consolas"}/>}
-
 
             <div style={{display: (showInitialStuff && !skippedCutscene) ? "block" : "none"}}>
                 <div>&gt;&gt;HELP GAME</div>

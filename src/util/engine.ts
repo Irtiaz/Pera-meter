@@ -476,6 +476,7 @@ export default class GameManager {
         ret += "HELP : List of all commands\n";
         ret += "HELP GAME : Introduction to the premise of the game\n";
         ret += "HELP LEVEL : Get current level information\n";
+        ret += "CLEAR: Clear screen\n";
 
         return ret;
     }
